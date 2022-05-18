@@ -1,7 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Status, LoadsheddingStage } from 'eskom-loadshedding-api';
+import sanityClient from '../../client';
+import imageUrlBuilder  from '@sanity/image-url';
 
 export interface IProduct {
+	productId: string;
 	manufacturer: string;
 	item: string;
 	quantity: number;
@@ -20,113 +23,70 @@ export interface IBasket {
 }
 
 function Home() {
-	const mockData: IProduct[] = [
-		{
-			manufacturer: 'Smel Gud',
-			item: 'Tobacco & Vanilla',
-			quantity: 0,
-			color: '',
-			price: 150,
-			descripton:
-				'This is example text that will will serve as a placeholder for this product contained above. This is a great fragrance, spoil your man this fathers day now!',
-			imageUrl: './cologne1.png',
-			category: 'fragrances',
-			categoryType: 'cologne',
-		},
-		{
-			manufacturer: 'Drip',
-			item: 'Casual shoe mesh blend',
-			quantity: 0,
-			color: '',
-			price: 800,
-			descripton:
-				'This is the latest installment coming from South Africas very own Drip maker. This unisex sneaker will have heads turning as you rock them no doubt. Come on. You know you want to.',
-			imageUrl: './shoe.png',
-			category: 'footwear',
-			categoryType: 'shoes',
-		},
-		{
-			manufacturer: 'Thia',
-			item: 'Only the Brave genuine',
-			quantity: 0,
-			color: '',
-			price: 100,
-			descripton:
-				'This fragrance is oil based and will last for weeks on your clothing you spray once and you smell it forever. You want to get this for your partner trust me.',
-			imageUrl: './cologne2.png',
-			category: 'perfumes',
-			categoryType: 'cologne',
-		},
-		{
-			manufacturer: 'Shezi',
-			item: 'Ispoti Denim bucket hat',
-			quantity: 0,
-			color: '',
-			price: 200,
-			descripton:
-				'This bucket hat is a must buy for anyone who loves i jean to jean. Add this to your arsenal and you wont regret it trust me.',
-			imageUrl: './spoti.png',
-			category: 'clothing',
-			categoryType: 'hats',
-		},
-		{
-			manufacturer: 'Tshepo The Jean Maker',
-			item: 'Jeans by Tshepo',
-			quantity: 0,
-			color: '',
-			price: 950,
-			descripton:
-				'These jeans were created by a local man in south africa who was aspiring to be like one of theses top designers',
-			imageUrl: './jeans.png',
-			category: 'clothing',
-			categoryType: 'jeans',
-		},
-		{
-			manufacturer: 'Themba',
-			item: 'Stragen beanies',
-			quantity: 0,
-			color: '',
-			price: 250,
-			descripton:
-				'These jeans were created by a local man in south africa who was aspiring to be like one of theses top designers',
-			imageUrl: './beanie.png',
-			category: 'clothing',
-			categoryType: 'hats',
-		},
-	];
+	const[productArray,setProductArray] = useState<any[]>([]);
+
+	const fetchProducts = useCallback(async() => {
+		const response = await sanityClient.fetch(`
+		*[_type == "product" ]
+		`);
+
+		setProductArray(response);
+	}, []);
+
+	const processImage = (url:any):any => {
+		const builder = imageUrlBuilder(sanityClient);
+		return builder.image(url)
+	}
+
+	useEffect(() => {
+		fetchProducts();
+	});
 
 	return (
-		<div className="w-full bg-gray-100">
+		<div className="w-full bg-zinc-100">
 			<h1>Plug Majita Online Store</h1>
 			<p>The place where we plug gents with the latest fashion</p>
-			<section className="grid grid-cols-1 gap-6 w-8/12 md:grid-cols-3 md:w-10/12  lg:grid-cols-4 xl:grid-cols-6  sm:grid-cols-2 mx-auto">
-				{mockData.map((item, i) => (
+			<section className="grid grid-cols-1 gap-6 w-8/12 md:grid-cols-3 md:w-10/12  lg:grid-cols-4 xl:grid-cols-5  sm:grid-cols-2 mx-auto">
+				{productArray?.length > 0 && <>
+				{productArray.map((item:any) => (
 					<article
-						key={i}
-						className="max-h-[20rem] flex flex-col py-4 px-4 rounded-md bg-white shadow-gray-600 drop-shadow-md  hover:shadow-lg cursor-pointer transition-shadow ease-in-out duration-300"
+						key={item._id}
+						className="max-h-[22rem] flex flex-col py-4 px-4 rounded-md bg-white shadow-zinc-600 drop-shadow-md  hover:shadow-lg cursor-pointer transition-shadow ease-in-out duration-300"
 					>
 						<figure className="h-[40%] relative">
 							<img
 								className="h-full mx-auto object-contain"
-								src={item.imageUrl}
+								src={processImage(item.productImage)}
 								alt={item.item}
 							/>
 
-              <p className='absolute bottom-0 right-0 bg-black px-2 text-white bg-[rgba(0,0,0,0.5)]'>R{item.price}</p>
+							<p className="absolute bottom-0 right-0 bg-black px-2 text-white bg-[rgba(0,0,0,0.5)]">
+								R{item.productPrice}
+							</p>
 						</figure>
 						<div className="flex flex-col h-[60%] relative">
-							<div className="flex justify-between">
-								<p className="font-light text-lg text-left text-gray-800">{item.item}</p>
+							<div className="">
+								<p className="font-light text-lg text-left text-zinc-800 line-clamp-2">
+									{item.productTitle}
+								</p>
+								<p className="text-left font-thin text-zinc-500 text-sm line-clamp-1">
+									By: 
+								</p>
 							</div>
 							<div>
-								<p className="line-clamp-5 text-sm text-gray-600">{item.descripton}</p>
+								<p className="line-clamp-4 text-sm text-zinc-600">
+									{item.productDescription}
+								</p>
 							</div>
-              <div className='h-full flex'>
-              <a className='w-full self-end justify-self-start'>Checkout</a>
-              </div>
+							<div className="h-full flex">
+								<a className="self-end justify-self-start mx-auto px-4 py-1 rounded-sm bg-amber-400 text-white hover:text-black hover:drop-shadow-lg hover:shadow-zinc-100">
+									Checkout
+								</a>
+							</div>
 						</div>
 					</article>
 				))}
+				</>}
 			</section>
 		</div>
 	);

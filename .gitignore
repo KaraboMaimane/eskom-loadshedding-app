@@ -21,3 +21,6 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+/sanity-data/yarn.lock
+/sanity-data/node_modules
+/package-lock.json

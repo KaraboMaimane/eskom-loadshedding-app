@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Status, LoadsheddingStage } from 'eskom-loadshedding-api';
 import sanityClient from '../../client';
 import imageUrlBuilder  from '@sanity/image-url';
+import { Link } from 'react-router-dom';
 
 export interface IProduct {
 	productId: string;
@@ -24,6 +25,8 @@ export interface IBasket {
 
 function Home() {
 	const[productArray,setProductArray] = useState<any[]>([]);
+	const [categoryArray, setCategoryArray] = useState<any[]>([])
+    const [vendorArray, setVendorArray] = useState<any[]>([]);
 
 	const fetchProducts = useCallback(async() => {
 		const response = await sanityClient.fetch(`
@@ -33,13 +36,42 @@ function Home() {
 		setProductArray(response);
 	}, []);
 
+	const fetchCategories = useCallback(async() => {
+        const response = await sanityClient.fetch(`*[_type == 'category']{
+            _id,
+            _type,
+            title,
+            slug,
+            parents
+          }`);
+
+        setCategoryArray(response);
+    }, [])
+
+    const fetchVendors = useCallback(async() => {
+        const response = await sanityClient.fetch(`*[_type == 'vendor']{
+            _id,
+            logo,
+            slug,
+            title
+          }`);
+
+          setVendorArray(response);
+    }, [])
+
 	const processImage = (url:any):any => {
 		const builder = imageUrlBuilder(sanityClient);
 		return builder.image(url)
 	}
 
+	const getVendor = (vendor: any): string => {
+		const vendorObject = vendorArray.find(vendorItem => vendorItem._id === vendor)
+		return vendorObject?.title;
+	}
+
 	useEffect(() => {
 		fetchProducts();
+		fetchVendors();
 	});
 
 	return (
@@ -70,7 +102,7 @@ function Home() {
 									{item.productTitle}
 								</p>
 								<p className="text-left font-thin text-zinc-500 text-sm line-clamp-1">
-									By: 
+									By: {getVendor(item.vendor.Vendor._ref)}
 								</p>
 							</div>
 							<div>
@@ -79,9 +111,9 @@ function Home() {
 								</p>
 							</div>
 							<div className="h-full flex">
-								<a className="self-end justify-self-start mx-auto px-4 py-1 rounded-sm bg-amber-400 text-white hover:text-black hover:drop-shadow-lg hover:shadow-zinc-100">
-									Checkout
-								</a>
+								<Link to={`/product-detail/${item._id}`} className="self-end justify-self-start w-30 mx-auto px-4 py-1 rounded-sm bg-amber-400 text-white hover:text-black hover:drop-shadow-lg hover:shadow-zinc-100">
+								Checkout
+								</Link>
 							</div>
 						</div>
 					</article>

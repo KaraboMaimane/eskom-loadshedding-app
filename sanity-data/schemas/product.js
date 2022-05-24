@@ -64,6 +64,18 @@ export default {
           to: [{type: 'category'}]
         }
       ]
+    },
+    {
+      name: 'measurementType',
+      title: 'Measurement value',
+      type: 'string',
+      options:{
+        list:[
+          {title: 'Apparel Size', value: 'apparel'},
+          {title: 'Shoe Size', value: 'shoe'},
+          {title: 'Liquid Size', value: 'liquid'},
+        ]
+      }
     }
   ],
 
